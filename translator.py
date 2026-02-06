@@ -1339,7 +1339,7 @@ def emit_enum(cur: Cursor, ignore_symbols: Set[str]) -> List[str]:
         except Exception:
             line = f"{ch.spelling}"
         if i != (len(consts) - 1):
-            o.w(line + ",")
+            o.w(line + ",\n") # NOTE: Minor bug but newline is needed here
         else:
             o.w(line)
 

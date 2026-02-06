@@ -1,0 +1,108 @@
+/* simple_move.c — minimal C-subset plugin core for trans.py */
+
+#include "slim.h"
+
+/* ============================================================
+ * Globals
+ * ============================================================ */
+
+static ConVar g_ConVarEnable;
+static ConVar g_ConVarLogEvery;
+
+static int g_nMoveCounter[MAXPLAYERS + 1];
+
+/* ============================================================
+ * Helpers
+ * ============================================================ */
+
+static int IsValidClientIndex(int nClient)
+{
+    if ((nClient <= 0) || (nClient > 64))
+    {
+        return 0;
+    }
+    return 1;
+}
+
+static int IsMoveButtonPressed(int nButtons)
+{
+    if ((nButtons & (IN_FORWARD)) != 0)   { return 1; }
+    if ((nButtons & (IN_BACK)) != 0)      { return 1; }
+    if ((nButtons & (IN_MOVELEFT)) != 0)  { return 1; }
+    if ((nButtons & (IN_MOVERIGHT)) != 0) { return 1; }
+    return 0;
+}
+
+static int GetLogEverySafe(void)
+{
+    int nEvery = GetConVarInt(g_ConVarLogEvery);
+    if (nEvery <= 0)
+    {
+        nEvery = 1;
+    }
+    return nEvery;
+}
+
+/* ============================================================
+ * Plugin entry
+ * ============================================================ */
+
+void OnPluginStart(void)
+{
+    g_ConVarEnable   = CreateConVar("sm_simplemove_enable",    "1",  "Enable simple move logger", 0);
+    g_ConVarLogEvery = CreateConVar("sm_simplemove_log_every", "20", "Log every N move cmds per client", 0);
+
+    PrintToServer("[simplemove] loaded");
+}
+
+/* ============================================================
+ * Hooks
+ * ============================================================ */
+
+Action OnPlayerRunCmd(
+    int nClient,
+    int* pButtons,
+    int* pImpulse,
+    float* flVelocity,
+    float* flAngles,
+    int* pWeapon,
+    int* pSubtype,
+    int* pCommandNumber,
+    int* pTickCount,
+    int* pRandomSeed,
+    int* pMouse
+)
+{
+    int nButtons;
+    int nEvery;
+    int nCounter;
+
+    if (!GetConVarBool(g_ConVarEnable))
+    {
+        return Plugin_Continue;
+    }
+
+    if (!IsValidClientIndex(nClient))
+    {
+        return Plugin_Continue;
+    }
+
+    nButtons = *pButtons;
+
+    if (!IsMoveButtonPressed(nButtons))
+    {
+        return Plugin_Continue;
+    }
+
+    g_nMoveCounter[nClient] = g_nMoveCounter[nClient] + 1;
+
+    nEvery = GetLogEverySafe();
+    nCounter = g_nMoveCounter[nClient];
+
+    if ((nCounter % nEvery) == 0)
+    {
+        PrintToServer("[simplemove] client=%d moved (%d)", nClient, nCounter);
+    }
+
+    return Plugin_Continue;
+}
