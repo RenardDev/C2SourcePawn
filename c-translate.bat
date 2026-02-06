@@ -15,7 +15,7 @@ set "SPCOMP=%SCRIPT_DIR%spcomp.exe"
 if not exist "%SPCOMP%" set "SPCOMP=%SCRIPT_DIR%spcomp"
 if not exist "%SPCOMP%" set "SPCOMP=spcomp"
 
-set "BUILD_DIR=%SCRIPT_DIR%build"
+set "TRANSLATE_DIR=%SCRIPT_DIR%translate"
 set "KEEP_TEMP=0"
 set "RUN_GENSLIM=1"
 
@@ -41,7 +41,9 @@ if /I "%~1"=="--clang" ( set "CLANG=%~2" & shift & shift & goto parse )
 if /I "%~1"=="--include-dir" ( set "INCLUDE_DIR=%~2" & shift & shift & goto parse )
 if /I "%~1"=="--slim" ( set "SLIM_H=%~2" & shift & shift & goto parse )
 if /I "%~1"=="--spcomp" ( set "SPCOMP=%~2" & shift & shift & goto parse )
-if /I "%~1"=="--build-dir" ( set "BUILD_DIR=%~2" & shift & shift & goto parse )
+
+if /I "%~1"=="--translate-dir" ( set "TRANSLATE_DIR=%~2" & shift & shift & goto parse )
+if /I "%~1"=="--build-dir" ( set "TRANSLATE_DIR=%~2" & shift & shift & goto parse )
 
 if /I "%~1"=="--no-genslim" ( set "RUN_GENSLIM=0" & shift & goto parse )
 if /I "%~1"=="--keep-temp" ( set "KEEP_TEMP=1" & shift & goto parse )
@@ -52,7 +54,7 @@ goto parse
 
 :parsed
 if "%INPUT%"=="" (
-  echo [ERR] Input not specified. Use: c-compile.bat -i input.c [-o output.sp]
+  echo [ERR] Input not specified. Use: c-translate.bat -i input.c [-o output.sp]
   goto help
 )
 
@@ -65,21 +67,21 @@ if "%OUTPUT%"=="" (
   for %%F in ("%INPUT%") do set "OUTPUT=%%~dpnF.sp"
 )
 
-if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%" >nul 2>&1
+if not exist "%TRANSLATE_DIR%" mkdir "%TRANSLATE_DIR%" >nul 2>&1
 
-set "LOG_PASS1=%BUILD_DIR%\spcomp_pass1.txt"
-set "LOG_FINAL=%BUILD_DIR%\spcomp_final.txt"
-set "IGNORE_FILE=%BUILD_DIR%\ignore_symbols.txt"
+set "LOG_PASS1=%TRANSLATE_DIR%\spcomp_pass1.txt"
+set "LOG_FINAL=%TRANSLATE_DIR%\spcomp_final.txt"
+set "IGNORE_FILE=%TRANSLATE_DIR%\ignore_symbols.txt"
 
 echo ============================================================
-echo INPUT      : "%INPUT%"
-echo OUTPUT     : "%OUTPUT%"
-echo CLANG      : "%CLANG%"
-echo SLIM_H     : "%SLIM_H%"
-echo INCLUDEDIR : "%INCLUDE_DIR%"
-echo SPCOMP     : "%SPCOMP%"
-echo BUILDDIR   : "%BUILD_DIR%"
-echo GENSLIM    : "%RUN_GENSLIM%"
+echo INPUT        : "%INPUT%"
+echo OUTPUT       : "%OUTPUT%"
+echo CLANG        : "%CLANG%"
+echo SLIM_H       : "%SLIM_H%"
+echo INCLUDEDIR   : "%INCLUDE_DIR%"
+echo SPCOMP       : "%SPCOMP%"
+echo TRANSLATEDIR : "%TRANSLATE_DIR%"
+echo GENSLIM      : "%RUN_GENSLIM%"
 echo ============================================================
 
 if not exist "%CLANG%" (
@@ -155,20 +157,20 @@ exit /b %SPCOMP_EXIT%
 :help
 echo.
 echo Usage:
-echo   c-compile.bat -i input.c [-o output.sp] [options] [extra translator args...]
+echo   c-translate.bat -i input.c [-o output.sp] [options] [extra translator args...]
 echo.
 echo Options:
 echo   --clang "C:\Program Files\LLVM\bin\clang.exe"
 echo   --slim  ".\slim.h"
 echo   --include-dir ".\include"
 echo   --spcomp ".\spcomp.exe"
-echo   --build-dir ".\build"
+echo   --translate-dir ".\translate"   ^(alias: --build-dir^)
 echo   --no-genslim
 echo   --keep-temp
 echo.
 echo Examples:
-echo   c-compile.bat -i demo.c -o demo.sp
-echo   c-compile.bat -i demo.c -- --strict --std c99
+echo   c-translate.bat -i demo.c -o demo.sp
+echo   c-translate.bat -i demo.c -- --strict --std c99
 echo.
 popd >nul
 exit /b 0
