@@ -1,6 +1,8 @@
 # C2SourcePawn
 Simple C -> SourcePawn translator (SM 1.12 / `newdecls`).
 
+This repository was not made for anything serious.
+
 ## Usage
 0. Copy the whole project into: `<path/to/sourcemod/scripting>`
 1. Generate `slim.h` from SourceMod includes:
